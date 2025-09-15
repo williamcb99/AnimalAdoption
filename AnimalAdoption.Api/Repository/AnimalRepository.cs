@@ -19,10 +19,11 @@ public class AnimalRepository : IAnimalRepository
         return await _context.Animals.FindAsync(id);
     }
 
-    public async Task AddAnimalAsync(Animal animal)
+    public async Task<Animal> AddAnimalAsync(Animal animal)
     {
         _context.Animals.Add(animal);
         await _context.SaveChangesAsync();
+        return animal;
     }
 
     public async Task RemoveAnimalAsync(int id)
