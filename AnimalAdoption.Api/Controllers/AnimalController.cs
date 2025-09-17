@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ public class AnimalController : ControllerBase
 
 
     [HttpGet]
+    [EndpointDescription("Get a list of all animals available for adoption.")]
     public async Task<ActionResult<List<AnimalSummaryDto>>> GetAllAnimals()
     {
         var animals = await _animalRepository.GetAnimalsAsync();
@@ -38,6 +40,7 @@ public class AnimalController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetAnimalById")]
+    [EndpointDescription("Get detailed information about a specific animal by its ID.")]
     public async Task<ActionResult<AnimalDetailedDto>> GetAnimalById(int id)
     {
         var animal = await _animalRepository.GetAnimalByIdAsync(id);
@@ -63,5 +66,20 @@ public class AnimalController : ControllerBase
             }
         };
         return Ok(dto);
+    }
+
+    [HttpDelete("{id}", Name = "DeleteAnimal")]
+    [EndpointDescription("Delete an animal from the adoption list by its ID.")]
+    public async Task<ActionResult> DeleteAnimal(int id)
+    {
+        try
+        {
+            await _animalRepository.RemoveAnimalAsync(id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 }

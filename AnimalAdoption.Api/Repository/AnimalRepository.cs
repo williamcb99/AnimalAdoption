@@ -29,10 +29,12 @@ public class AnimalRepository : IAnimalRepository
     public async Task RemoveAnimalAsync(int id)
     {
         var animal = await _context.Animals.FindAsync(id);
-        if (animal != null)
+        if (animal == null)
         {
-            _context.Animals.Remove(animal);
-            await _context.SaveChangesAsync();          
+            throw new KeyNotFoundException($"Animal with ID {id} not found.");
         }
+
+        _context.Animals.Remove(animal);
+        await _context.SaveChangesAsync();          
     }
 }
