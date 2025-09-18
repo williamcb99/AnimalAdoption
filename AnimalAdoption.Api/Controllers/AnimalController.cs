@@ -17,6 +17,8 @@ public class AnimalController : ControllerBase
 
     [HttpGet]
     [EndpointDescription("Get a list of all animals available for adoption.")]
+    [ProducesResponseType(typeof(List<AnimalSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<List<AnimalSummaryDto>>> GetAllAnimals()
     {
         var animals = await _animalRepository.GetAnimalsAsync();
@@ -41,6 +43,8 @@ public class AnimalController : ControllerBase
 
     [HttpGet("{id}", Name = "GetAnimalById")]
     [EndpointDescription("Get detailed information about a specific animal by its ID.")]
+    [ProducesResponseType(typeof(AnimalDetailedDto),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AnimalDetailedDto>> GetAnimalById(int id)
     {
         var animal = await _animalRepository.GetAnimalByIdAsync(id);
@@ -70,6 +74,8 @@ public class AnimalController : ControllerBase
 
     [HttpDelete("{id}", Name = "DeleteAnimal")]
     [EndpointDescription("Delete an animal from the adoption list by its ID.")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteAnimal(int id)
     {
         try
