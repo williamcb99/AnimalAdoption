@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +13,30 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AnimalAdoptionDbContext>(options => options.UseInMemoryDatabase("AnimalAdoptionDb"));
 builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
+builder.Services.AddScoped<JwtTokenService>();
 
+var jwtSettingsSection = builder.Configuration.GetSection("Authentication:JwtSettings");
+builder.Services.Configure<JwtSettings>(jwtSettingsSection);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("Authentication:JwtSettings").Get<JwtSettings>();
+        var whitelistSection = builder.Configuration.GetSection("Authentication:Whitelist");
+        var allowedAudiences = whitelistSection.GetChildren().Select(x => x.Key).ToList();
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(jwtSettings.Secret)),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudiences = allowedAudiences,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true
+        };
+    });
 
 var app = builder.Build();
 
@@ -18,7 +44,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference("/api/scalar");
+    app.MapScalarApiReference("/api/scalar", options =>
+    {
+        options.Authentication = new ScalarAuthenticationOptions
+        {
+            PreferredSecuritySchemes = new[] { JwtBearerDefaults.AuthenticationScheme }
+        };
+    });
 }
 
 using (var scope = app.Services.CreateScope())
@@ -40,6 +72,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

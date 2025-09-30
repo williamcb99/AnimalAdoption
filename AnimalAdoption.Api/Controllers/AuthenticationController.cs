@@ -1,0 +1,35 @@
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthenticationController : ControllerBase
+{
+    private readonly JwtTokenService _jwtTokenService;
+    private readonly IConfiguration _configuration;
+
+    private Dictionary<string, Guid> _whitelist = new();
+
+    public AuthenticationController(JwtTokenService jwtTokenService, IConfiguration configuration)
+    {
+        _jwtTokenService = jwtTokenService;
+        _configuration = configuration;
+        _whitelist = _configuration.GetSection("Authentication:Whitelist").Get<Dictionary<string, Guid>>() ?? new Dictionary<string, Guid>();
+    }
+
+    [HttpPost]
+    [EndpointDescription("Authenticate a user and receive a JWT token.")]
+    public ActionResult<string> Authenticate([FromBody] AuthenticationRequestDto auth)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (!_whitelist.TryGetValue(auth.Username, out var storedPassword))
+            return Unauthorized("Invalid username or password.");
+
+        if (!Guid.TryParse(auth.Password, out var providedPassword) || providedPassword != storedPassword)
+            return Unauthorized("Invalid username or password.");
+
+        var token = _jwtTokenService.GenerateToken(auth.Username);
+        return Ok(token);
+    }
+}

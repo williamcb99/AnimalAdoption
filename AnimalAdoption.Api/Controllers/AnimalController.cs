@@ -1,24 +1,24 @@
 using System.ComponentModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AnimalController : ControllerBase
 {
     private readonly IAnimalRepository _animalRepository;
-
-
     public AnimalController(IAnimalRepository animalRepository)
     {
         _animalRepository = animalRepository;
     }
 
-
     [HttpGet]
     [EndpointDescription("Get a list of all animals available for adoption.")]
     [ProducesResponseType(typeof(List<AnimalSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<List<AnimalSummaryDto>>> GetAllAnimals()
     {
         var animals = await _animalRepository.GetAnimalsAsync();
@@ -43,8 +43,9 @@ public class AnimalController : ControllerBase
 
     [HttpGet("{id}", Name = "GetAnimalById")]
     [EndpointDescription("Get detailed information about a specific animal by its ID.")]
-    [ProducesResponseType(typeof(AnimalDetailedDto),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AnimalDetailedDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AnimalDetailedDto>> GetAnimalById(int id)
     {
         var animal = await _animalRepository.GetAnimalByIdAsync(id);
@@ -76,6 +77,7 @@ public class AnimalController : ControllerBase
     [EndpointDescription("Delete an animal from the adoption list by its ID.")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> DeleteAnimal(int id)
     {
         try
