@@ -26,6 +26,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         var jwtSettings = builder.Configuration.GetSection("Authentication:JwtSettings").Get<JwtSettings>();
         var whitelistSection = builder.Configuration.GetSection("Authentication:Whitelist");
         var allowedAudiences = whitelistSection.GetChildren().Select(x => x.Key).ToList();
+        if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Secret))
+        {
+            throw new InvalidOperationException("JWT settings or secret is not configured properly.");
+        }
         options.TokenValidationParameters = new TokenValidationParameters
         {
             IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(jwtSettings.Secret)),
