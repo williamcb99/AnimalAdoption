@@ -10,7 +10,7 @@ public class JwtTokenService
         _jwtSettings = jwtSettings;
     }
 
-    public string GenerateToken(string audience)
+    public JwtToken GenerateToken(string audience)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(_jwtSettings.Secret);
@@ -25,12 +25,19 @@ public class JwtTokenService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+            IssuedAt = DateTime.UtcNow,
             Issuer = _jwtSettings.Issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+
+        return new JwtToken
+        {
+            Token = tokenHandler.WriteToken(token),
+            Expiration = tokenDescriptor.Expires.Value,
+            IssuedAt = tokenDescriptor.IssuedAt.Value
+        };
     }
 }

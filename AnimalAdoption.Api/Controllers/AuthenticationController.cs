@@ -18,7 +18,7 @@ public class AuthenticationController : ControllerBase
 
     [HttpPost]
     [EndpointDescription("Authenticate a user and receive a JWT token.")]
-    public ActionResult<string> Authenticate([FromBody] AuthenticationRequestDto auth)
+    public ActionResult<AuthenticationResponseDto> Authenticate([FromBody] AuthenticationRequestDto auth)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -27,6 +27,7 @@ public class AuthenticationController : ControllerBase
             return Unauthorized("Invalid username or password.");
 
         var token = _jwtTokenService.GenerateToken(auth.Username);
-        return Ok(token);
+        
+        return Ok(new AuthenticationResponseDto { Token = token.Token, IssuedAt = token.IssuedAt, Expiration = token.Expiration });
     }
 }
