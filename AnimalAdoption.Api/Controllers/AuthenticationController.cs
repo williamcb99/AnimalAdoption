@@ -18,13 +18,20 @@ public class AuthenticationController : ControllerBase
 
     [HttpPost]
     [EndpointDescription("Authenticate a user and receive a JWT token.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<AuthenticationResponseDto> Authenticate([FromBody] AuthenticationRequestDto auth)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         if (!_whitelist.TryGetValue(auth.Username, out var storedPassword) || auth.Password != storedPassword)
-            return Unauthorized("Invalid username or password.");
+            return Problem(
+                title: "Authentication Failed",
+                detail: "Invalid username or password.",
+                statusCode: 401
+            );
 
         var token = _jwtTokenService.GenerateToken(auth.Username);
         

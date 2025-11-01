@@ -24,7 +24,11 @@ public class AnimalController : ControllerBase
         var animals = await _animalRepository.GetAnimalsAsync();
         if (animals == null || !animals.Any())
         {
-            return Problem("Animal repository returned null or empty list.");
+            return Problem(
+                title: "Service Unavailable",
+                detail: "Animal repository returned null or empty list.",
+                statusCode: 503
+            );
         }
 
         var dtos = animals.Select(a => new AnimalSummaryDto
@@ -51,7 +55,11 @@ public class AnimalController : ControllerBase
         var animal = await _animalRepository.GetAnimalByIdAsync(id);
         if (animal == null)
         {
-            return NotFound();
+            return Problem(
+                title: "Animal Not Found",
+                detail: $"No animal found with ID {id}.",
+                statusCode: 404
+            );
         }
 
         var dto = new AnimalDetailedDto
@@ -87,7 +95,11 @@ public class AnimalController : ControllerBase
         }
         catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return Problem(
+                title: "Animal Not Found",
+                detail: ex.Message,
+                statusCode: 404
+            );
         }
     }
 }
