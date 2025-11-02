@@ -65,10 +65,10 @@ using (var scope = app.Services.CreateScope())
     if (!context.Animals.Any())
     {
         context.Animals.AddRange(
-            new Animal { Id = 1, Name = "Buddy", Type = AnimalType.Dog, Age = 3, Breed = "Golden Retriever", Description = "Friendly and energetic.", IsAdopted = false },
-            new Animal { Id = 2, Name = "Mittens", Type = AnimalType.Cat, Age = 2, Breed = "Tabby", Description = "Loves to cuddle.", IsAdopted = false },
-            new Animal { Id = 3, Name = "Charlie", Type = AnimalType.Dog, Age = 4, Breed = "Beagle", Description = "Curious and playful.", IsAdopted = true },
-            new Animal { Id = 4, Name = "Luna", Type = AnimalType.Cat, Age = 1, Breed = "Siamese", Description = "Very vocal and affectionate.", IsAdopted = false }
+            new Animal { Id = 1, Name = "Buddy", Type = AnimalType.Dog, Birthdate = new DateOnly(2021, 12, 25), ArrivalDate = new DateOnly(2025, 01, 12), Breed = "Golden Retriever", Description = "Friendly and energetic.", IsAdopted = false },
+            new Animal { Id = 2, Name = "Mittens", Type = AnimalType.Cat, Birthdate = new DateOnly(2025, 01, 05), ArrivalDate = new DateOnly(2025, 05, 11), Breed = "Tabby", Description = "Loves to cuddle.", IsAdopted = false },
+            new Animal { Id = 3, Name = "Charlie", Type = AnimalType.Dog, Birthdate = new DateOnly(2023, 06, 28), ArrivalDate = new DateOnly(2025, 08, 10), Breed = "Beagle", Description = "Curious and playful.", IsAdopted = true },
+            new Animal { Id = 4, Name = "Luna", Type = AnimalType.Cat, Birthdate = new DateOnly(2018, 09, 14), ArrivalDate = new DateOnly(2024, 10, 30), Breed = "Siamese", Description = "Very vocal and affectionate.", IsAdopted = false }
         );
         context.SaveChanges();
     }
