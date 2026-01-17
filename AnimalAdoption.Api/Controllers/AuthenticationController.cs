@@ -5,15 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 public class AuthenticationController : ControllerBase
 {
     private readonly JwtTokenService _jwtTokenService;
-    private readonly IConfiguration _configuration;
-
-    private Dictionary<string, string> _whitelist = new();
-
-    public AuthenticationController(JwtTokenService jwtTokenService, IConfiguration configuration)
+    private readonly IUserRepository _userRepository;
+    public AuthenticationController(JwtTokenService jwtTokenService, IUserRepository userRepository)
     {
         _jwtTokenService = jwtTokenService;
-        _configuration = configuration;
-        _whitelist = _configuration.GetSection("Authentication:Whitelist").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+        _userRepository = userRepository;
     }
 
     [HttpPost]
@@ -21,20 +17,29 @@ public class AuthenticationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public ActionResult<AuthenticationResponseDto> Authenticate([FromBody] AuthenticationRequestDto auth)
+    public async Task<ActionResult> Authenticate([FromBody] AuthenticationRequestDto auth)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        if (!_whitelist.TryGetValue(auth.Username, out var storedPassword) || auth.Password != storedPassword)
-            return Problem(
-                title: "Authentication Failed",
-                detail: "Invalid username or password.",
-                statusCode: 401
-            );
+        var user = await _userRepository.GetUserByUsernameAsync(auth.Username);
+
+        var hash = user?.PasswordHash ?? "$2a$12$d1F4sPK4vm8gOjE./Ji8suSH.ytMQlJxHn.jWVTOf.hZPEA4NQogG";
+
+        if (!BCrypt.Net.BCrypt.Verify(auth.Password, hash))
+            return Unauthorized(new ProblemDetails
+            {
+                Title = "Authentication Failed",
+                Detail = "Invalid username or password.",
+            });
 
         var token = _jwtTokenService.GenerateToken(auth.Username);
         
-        return Ok(new AuthenticationResponseDto { Token = token.Token, IssuedAt = token.IssuedAt, Expiration = token.Expiration });
+        return Ok(new AuthenticationResponseDto 
+        { 
+            Token = token.Token, 
+            IssuedAt = token.IssuedAt, 
+            Expiration = token.Expiration 
+        });
     }
 }

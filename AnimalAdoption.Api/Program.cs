@@ -12,7 +12,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AnimalAdoptionDbContext>(options => options.UseInMemoryDatabase("AnimalAdoptionDb"));
+builder.Services.AddDbContext<UserDbContext>(options => options.UseInMemoryDatabase("UserDb"));
 builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<JwtTokenService>();
 
 var jwtSettingsSection = builder.Configuration.GetSection("Authentication:JwtSettings");
@@ -23,20 +25,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var jwtSettings = builder.Configuration.GetSection("Authentication:JwtSettings").Get<JwtSettings>();
-        var whitelistSection = builder.Configuration.GetSection("Authentication:Whitelist");
-        var allowedAudiences = whitelistSection.GetChildren().Select(x => x.Key).ToList();
-        if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Secret))
-        {
-            throw new InvalidOperationException("JWT settings or secret is not configured properly.");
-        }
+        var jwtSettings = builder.Configuration
+            .GetSection("Authentication:JwtSettings")
+            .Get<JwtSettings>()
+            ?? throw new InvalidOperationException("JWT settings or secret is not configured properly.");
+            
         options.TokenValidationParameters = new TokenValidationParameters
         {
             IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(jwtSettings.Secret)),
             ValidIssuer = jwtSettings.Issuer,
-            ValidAudiences = allowedAudiences,
             ValidateIssuer = true,
-            ValidateAudience = true,
+            ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true
         };
@@ -70,6 +69,28 @@ using (var scope = app.Services.CreateScope())
             new Animal { Id = 3, Name = "Charlie", Type = AnimalType.Dog, Birthdate = new DateOnly(2023, 06, 28), ArrivalDate = new DateOnly(2025, 08, 10), Breed = "Beagle", Description = "Curious and playful.", IsAdopted = true },
             new Animal { Id = 4, Name = "Luna", Type = AnimalType.Cat, Birthdate = new DateOnly(2018, 09, 14), ArrivalDate = new DateOnly(2024, 10, 30), Breed = "Siamese", Description = "Very vocal and affectionate.", IsAdopted = false }
         );
+        context.SaveChanges();
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    context.Database.EnsureCreated();   
+
+    if (!context.Users.Any())
+    {
+        var seedUsers = app.Configuration.GetSection("SeedUsers").Get<List<SeedUser>>() ?? new List<SeedUser>();
+        foreach (var seedUser in seedUsers)
+        {
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = seedUser.Username,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedUser.Password)
+            };
+            context.Users.Add(user);
+        }
         context.SaveChanges();
     }
 }

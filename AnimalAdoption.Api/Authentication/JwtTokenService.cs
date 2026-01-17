@@ -10,7 +10,7 @@ public class JwtTokenService
         _jwtSettings = jwtSettings;
     }
 
-    public JwtToken GenerateToken(string audience)
+    public JwtToken GenerateToken(string username)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(_jwtSettings.Secret);
@@ -18,16 +18,18 @@ public class JwtTokenService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, audience),
+            new(JwtRegisteredClaimNames.Sub, username),
+            new(ClaimTypes.Name, username)
         };
+
+        var timeNow = DateTime.UtcNow;
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-            IssuedAt = DateTime.UtcNow,
+            Expires = timeNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+            IssuedAt = timeNow,
             Issuer = _jwtSettings.Issuer,
-            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
