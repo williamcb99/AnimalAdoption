@@ -103,4 +103,48 @@ public class AnimalController : ControllerBase
             );
         }
     }
+
+    [HttpPost(Name = "AddAnimal")]
+    [EndpointDescription("Add a new animal to the adoption list.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> AddAnimal([FromBody] AddAnimalDto animal)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (animal.Birthdate > DateOnly.FromDateTime(DateTime.Today))
+            return Problem(
+                title: "Invalid Birthdate",
+                detail: "Birthdate cannot be in the future.",
+                statusCode: 400
+            );
+        if (Enum.GetValues<AnimalType>().Cast<AnimalType>().All(t => t != animal.AnimalType))
+            return Problem(
+                title: "Invalid Animal Type",
+                detail: $"Animal type '{animal.AnimalType}' is not recognized.",
+                statusCode: 400
+            );
+        var newAnimal = await _animalRepository.AddAnimalAsync(new Animal {
+            Name = animal.Name,
+            Type = animal.AnimalType,
+            Birthdate = animal.Birthdate,
+            ArrivalDate = DateOnly.FromDateTime(DateTime.Today),
+            Breed = animal.Breed,
+            Description = animal.Description,
+            IsAdopted = false
+        });
+
+        return CreatedAtAction("GetAnimalById", new { id = newAnimal.Id }, new AnimalSummaryDto
+        {
+            Id = newAnimal.Id,
+            Name = newAnimal.Name,
+            Type = newAnimal.Type,
+            Links = new List<LinkDto>
+            {
+                Url.BuildLink("GetAnimalById", new { id = newAnimal.Id }, "self", "GET"),
+                Url.BuildLink("DeleteAnimal", new { id = newAnimal.Id }, "delete", "DELETE")
+            }
+        });
+    }
 }
