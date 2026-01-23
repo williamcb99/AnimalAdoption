@@ -1,0 +1,19 @@
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+nav a {
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+nav a:last-child {
+    margin-left: auto;
+}
+
+nav a.active {
+    font-weight: bold;
+    background-color: black;
+}

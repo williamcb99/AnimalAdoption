@@ -1,0 +1,6 @@
+main {
+    background-color: var(--main-background-color);
+    display: flex;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: ". . ."
+}
