@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--body-font-color);
   background-color: #242424;
 
   font-synthesis: none;
@@ -13,31 +13,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-#app {
-  width: 100vw;
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100vw;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100dvh;}
+
+#app {
+  width: 100%;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "header"
-    "main"
-    "footer";
-}
 
-header {
-  grid-area: header;
-  background-color: red;
-  border-bottom: 1px solid black;
-}
-
-main {
-  grid-area: main;
-  background-color:blue;
-}
-
-footer {
-  grid-area: footer;
-  background-color: green;
-  height: 50px;
 }

@@ -1,3 +1,6 @@
 :root {
-    --main-background-color: #FFF5E7;
+    --main-background-color: #fff1dd;
+    --secondary-background-color: #FFFEFA;
+    --body-font-color: #333333;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

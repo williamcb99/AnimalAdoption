@@ -25,9 +25,9 @@ export const Header = () => {
                 </NavLink>
                 <NavLink 
                     className={({ isActive }) => isActive ? styles.active : undefined} 
-                    to="/admin"
+                    to="/login"
                     >
-                        Admin
+                        Log in
                 </NavLink>
             </nav>
         </header>

@@ -10,7 +10,7 @@ export const App = () => {
                     <Route index element={<Homepage />} />
                     <Route path="available-animals" />
                     <Route path="about-us" />
-                    <Route path="admin" />
+                    <Route path="login" />
                 </Route>
             </Routes>
         </>
